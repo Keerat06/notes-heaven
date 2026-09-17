@@ -1,224 +1,136 @@
 # Notes Heaven
 
 ## Overview
-**Notes Heaven** is a clean, student-focused full-stack note-taking web application designed for organizing, searching, and revising college coursework and technical topics (such as DAA, DBMS, Operating Systems, Computer Networks, and Web Development). Built strictly with native web standards on the frontend (HTML, CSS, Vanilla JavaScript) and a lightweight Node.js/Express/MongoDB backend with JWT authentication and bcrypt password hashing.
-
----
+A lightweight full-stack student note-taking web application built with HTML, CSS, Vanilla JavaScript, Express, and MongoDB.
 
 ## Features
-- **Student Authentication**: Secure account registration and login using bcrypt password hashing and JSON Web Tokens (JWT) stored in `localStorage`.
-- **Complete Note Lifecycle**: Create, view, edit, soft-delete, restore, and permanently delete notes.
-- **Image & Diagram Attachments**: Attach lecture slide screenshots, diagrams, and graphs to notes via direct image URLs or local file uploads (converted client-side to Base64 Data URLs) with live preview and removal controls.
-- **Strict User Isolation**: Every note is strictly bound to its creator's user ID in MongoDB, preventing cross-user unauthorized access.
-- **Priority Organization**: Pin important exam revision notes to the top of lists and star favorites for instant access.
-- **Soft Delete & Trash Management**: Deleting a note moves it safely to the Trash Bin (`deleted: true`), keeping active, favorite, and pinned views uncluttered while enabling easy restoration or permanent deletion with user confirmation.
-- **Search, Filter & Sorting**: Instant real-time search across note titles, contents, subjects, and tags, with subject filters and multiple sorting options (recently updated, oldest, alphabetical A-Z and Z-A).
-- **Dynamic Real-Time Dashboard**: Live statistics calculated directly from the database for active notes, favorites, pinned notes, subject counts, and recent revisions.
-- **Dark / Light Mode**: Theme switching powered by CSS variables (`--background`, `--card`, `--text`, `--muted`, `--border`, `--accent`) persisted across sessions in `localStorage`.
-- **Polished UX**: Smooth loading states, toast notifications, empty states with helpful guidance, delete confirmations, and responsive mobile sidebar navigation.
-
----
+- **User Authentication**: Sign up and login using bcrypt password hashing and JWT authentication.
+- **Note Management**: Create, edit, soft-delete, restore, and permanently delete study notes.
+- **Image Attachments**: Attach diagrams and screenshots via image URL or local file upload.
+- **Organization**: Star favorites, pin notes to the top, and filter by subject.
+- **Search & Sort**: Instant search by title/content/tags and sort by date or title.
+- **Trash Bin**: Safely stores soft-deleted notes until restored or purged.
+- **Dashboard**: Live statistics for total notes, favorites, pinned notes, and subjects.
+- **Theme Support**: Dark and light modes via CSS variables persisted in `localStorage`.
 
 ## Tech Stack
-- **Frontend**: HTML5, CSS3 (Vanilla CSS with Custom Properties/Variables), Vanilla JavaScript (ES6+)
+- **Frontend**: HTML5, CSS3, Vanilla JavaScript (ES6+)
 - **Backend**: Node.js, Express.js
-- **Database**: MongoDB with Mongoose ODM
-- **Security & Authentication**: JSON Web Tokens (`jsonwebtoken`), Password Hashing (`bcryptjs`), CORS, Dotenv
-
----
+- **Database**: MongoDB, Mongoose
+- **Auth**: JSON Web Tokens (`jsonwebtoken`), `bcryptjs`
 
 ## Project Structure
 ```
 notesHeaven2/
 ├── middleware/
-│   └── auth.js           # JWT authentication & route protection middleware
+│   └── auth.js         # JWT verification middleware
 ├── models/
-│   ├── User.js           # Mongoose User schema (name, email, password, createdAt)
-│   └── Note.js           # Mongoose Note schema (title, content, subject, tags, imageUrl, fav, pin, deleted, user)
+│   ├── User.js         # User model
+│   └── Note.js         # Note model
 ├── public/
-│   ├── css/
-│   │   └── style.css     # CSS custom variables, light/dark themes & responsive layouts
+│   ├── css/style.css   # Main stylesheet & themes
 │   ├── js/
-│   │   ├── auth.js       # Login & registration forms validation and submission
-│   │   ├── common.js     # Shared Auth state, API fetch helper, theme toggle, toast notifications
-│   │   ├── dashboard.js  # Live stats loading and dashboard metrics rendering
-│   │   └── notes.js      # Notes catalog filtering, search, sorting, image handling & note editor form
-│   ├── dashboard.html    # User overview & live metrics
-│   ├── editor.html       # Note creation & editing interface with image upload
-│   ├── favorites.html    # Starred notes view
-│   ├── index.html        # Landing page
-│   ├── login.html        # Sign-in page
-│   ├── notes.html        # All active notes with search & filters
-│   ├── pinned.html       # Pinned notes view
-│   ├── register.html     # Registration page
-│   └── trash.html        # Deleted notes bin with restore & purge
+│   │   ├── auth.js     # Login & registration logic
+│   │   ├── common.js   # Auth helpers, theme & toasts
+│   │   ├── dashboard.js# Stats rendering
+│   │   └── notes.js    # Notes CRUD & editor logic
+│   ├── dashboard.html  # Dashboard page
+│   ├── editor.html     # Note editor page
+│   ├── favorites.html  # Starred notes page
+│   ├── index.html      # Landing page
+│   ├── login.html      # Login page
+│   ├── notes.html      # All notes page
+│   ├── pinned.html     # Pinned notes page
+│   ├── register.html   # Sign up page
+│   └── trash.html      # Trash bin page
 ├── routes/
-│   ├── auth.js           # Authentication API endpoints
-│   └── notes.js          # Notes CRUD & management API endpoints
-├── .env                  # Environment configuration
-├── package.json          # Node.js project manifest & scripts
-├── README.md             # Project documentation
-└── server.js             # Express application & static file server
+│   ├── auth.js         # Auth routes
+│   └── notes.js        # Notes API routes
+├── .env                # Environment variables
+├── package.json        # Dependencies & scripts
+└── server.js           # Server entry point
 ```
 
----
-
 ## How Authentication Works
-1. **Registration Flow (`POST /api/auth/register`)**:
-   - The user fills out the registration form (`name`, `email`, `password`).
-   - The frontend sends a `POST` request with JSON payload to `/api/auth/register`.
-   - The backend validates all inputs (ensures email is unique, password is >= 6 chars).
-   - The password is securely hashed with `bcryptjs` using a salt work factor of 10.
-   - A new `User` document is saved to MongoDB.
-   - Starter notes are automatically seeded for the new user.
-   - A signed JWT token is returned containing the user payload (`id`, `name`, `email`).
-   - The frontend stores the token in `localStorage` (`nh_token`) and user data in `nh_user`.
-
-2. **Login Flow (`POST /api/auth/login`)**:
-   - The user inputs their email and password.
-   - The backend finds the user document by email.
-   - `bcrypt.compare(password, user.password)` verifies credentials against the stored hash.
-   - Upon verification, a fresh JWT is generated and returned to the frontend.
-   - The frontend stores the token in `localStorage` and redirects to `/dashboard.html`.
-
-3. **Protected API Requests**:
-   - Every API request made via `authFetch()` attaches an `Authorization: Bearer <token>` header.
-   - The Express middleware `middleware/auth.js` verifies the token with `jwt.verify(token, secret)`.
-   - If valid, the decoded user payload is attached to `req.user`. If missing, invalid, or expired, a `401 Unauthorized` response is returned and the frontend redirects the user to `/login.html`.
-
-4. **Logout**:
-   - Clears `nh_token` and `nh_user` from `localStorage` and redirects the user to `/login.html`.
-
----
+1. **Register**: User submits credentials $\rightarrow$ password hashed with bcrypt $\rightarrow$ user saved in MongoDB $\rightarrow$ server returns signed JWT.
+2. **Login**: User submits credentials $\rightarrow$ bcrypt compares password $\rightarrow$ server returns signed JWT.
+3. **Session**: JWT is stored in `localStorage` (`nh_token`) and sent via `Authorization: Bearer <token>` header on protected requests.
+4. **Protection**: `auth.js` middleware validates token and extracts `req.user`. Unauthenticated requests receive `401 Unauthorized`.
+5. **Logout**: Removes JWT from `localStorage` and redirects to `/login.html`.
 
 ## How Notes Work
-1. **Creation**:
-   - Submitted via `/editor.html` (`POST /api/notes`).
-   - The backend sets `user: req.user.id`, `deleted: false`, and parses tags, subject, and optional `imageUrl`.
-2. **Retrieval**:
-   - `GET /api/notes` retrieves notes strictly matching `{ user: req.user.id, deleted: false }`.
-   - Supports query params: `?search=...`, `?subject=...`, `?favorite=true`, `?pinned=true`, `?sort=latest|oldest|title_asc|title_desc`.
-3. **Editing**:
-   - `PUT /api/notes/:id` updates note fields after verifying both note ID and ownership (`user: req.user.id`).
-4. **Image & Diagram Attachments**:
-   - Students can provide a direct image URL or upload a local image file.
-   - Local files are converted to Base64 Data URLs via the JavaScript `FileReader` API and saved directly into the `imageUrl` field.
-   - Note cards automatically display an image thumbnail with responsive scaling and fallback error handling.
-5. **Favorite & Pin Toggles**:
-   - `PATCH /api/notes/:id/favorite` toggles or sets favorite status.
-   - `PATCH /api/notes/:id/pin` toggles or sets pinned status.
-6. **Soft Delete & Trash**:
-   - `DELETE /api/notes/:id` moves the note to trash by setting `deleted: true` and unpinning it.
-   - `GET /api/notes?trash=true` retrieves deleted notes.
-   - `PATCH /api/notes/:id/restore` restores the note (`deleted: false`).
-   - `DELETE /api/notes/:id/permanent` permanently deletes the note document from MongoDB.
-   - `DELETE /api/notes/trash/empty` permanently removes all trashed notes for the user.
-
----
+1. **Create/Edit**: Forms submit note payload (`title`, `content`, `subject`, `tags`, `imageUrl`, `pinned`, `favorite`) to `/api/notes`.
+2. **Ownership**: Notes are automatically tied to `req.user.id`. Queries verify both note ID and user ID (`{ _id, user: req.user.id }`).
+3. **Soft Delete**: Deleting a note sets `deleted: true`. Trashed notes only appear in the Trash view.
+4. **Restore/Purge**: Notes can be restored (`deleted: false`) or permanently deleted from the database.
 
 ## API Endpoints
 
-### Authentication (`/api/auth`)
-| Method | Endpoint | Description | Auth Required |
+### Auth Routes (`/api/auth`)
+| Method | Endpoint | Description | Auth |
 |---|---|---|---|
-| `POST` | `/api/auth/register` | Register new user & return JWT | No |
-| `POST` | `/api/auth/login` | Authenticate user & return JWT | No |
-| `GET` | `/api/auth/me` | Fetch currently logged in user profile | Yes |
+| `POST` | `/api/auth/register` | Register new user | No |
+| `POST` | `/api/auth/login` | Log in user | No |
+| `GET` | `/api/auth/me` | Get current user | Yes |
 
-### Notes (`/api/notes`)
-| Method | Endpoint | Description | Auth Required |
+### Notes Routes (`/api/notes`)
+| Method | Endpoint | Description | Auth |
 |---|---|---|---|
-| `GET` | `/api/notes` | Get all active notes (supports query filters) | Yes |
-| `GET` | `/api/notes/stats` | Get dashboard metrics & counts | Yes |
-| `GET` | `/api/notes/:id` | Get a single note by ID | Yes |
-| `POST` | `/api/notes` | Create a new note | Yes |
-| `PUT` | `/api/notes/:id` | Update an existing note | Yes |
-| `PATCH` | `/api/notes/:id/favorite` | Toggle / update favorite status | Yes |
-| `PATCH` | `/api/notes/:id/pin` | Toggle / update pin status | Yes |
+| `GET` | `/api/notes` | Get user notes (supports filters) | Yes |
+| `GET` | `/api/notes/stats` | Get dashboard statistics | Yes |
+| `GET` | `/api/notes/:id` | Get single note by ID | Yes |
+| `POST` | `/api/notes` | Create new note | Yes |
+| `PUT` | `/api/notes/:id` | Update note | Yes |
+| `PATCH` | `/api/notes/:id/favorite` | Toggle favorite status | Yes |
+| `PATCH` | `/api/notes/:id/pin` | Toggle pin status | Yes |
 | `PATCH` | `/api/notes/:id/restore` | Restore note from trash | Yes |
 | `DELETE` | `/api/notes/:id` | Soft delete note (move to trash) | Yes |
-| `DELETE` | `/api/notes/:id/permanent` | Permanently delete note from database | Yes |
-| `DELETE` | `/api/notes/trash/empty` | Empty all trashed notes for user | Yes |
-| `POST` | `/api/notes/seed` | Seed sample starter study notes | Yes |
-
----
+| `DELETE` | `/api/notes/:id/permanent` | Permanently delete note | Yes |
+| `DELETE` | `/api/notes/trash/empty` | Empty all trashed notes | Yes |
 
 ## Database Models
 
-### User Schema (`models/User.js`)
-```javascript
-{
-  name: { type: String, required: true, trim: true },
-  email: { type: String, required: true, unique: true, lowercase: true, trim: true },
-  password: { type: String, required: true, minlength: 6 },
-  createdAt: { type: Date, default: Date.now }
-}
-```
+### User (`models/User.js`)
+- `name` (String, required)
+- `email` (String, required, unique)
+- `password` (String, required)
+- `createdAt` (Date)
 
-### Note Schema (`models/Note.js`)
-```javascript
-{
-  title: { type: String, required: true, trim: true },
-  content: { type: String, required: true },
-  subject: { type: String, default: 'General', trim: true },
-  tags: { type: [String], default: [] },
-  imageUrl: { type: String, default: '' },
-  favorite: { type: Boolean, default: false },
-  pinned: { type: Boolean, default: false },
-  deleted: { type: Boolean, default: false },
-  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now }
-}
-```
-
----
+### Note (`models/Note.js`)
+- `title` (String, required)
+- `content` (String, required)
+- `subject` (String, default: 'General')
+- `tags` ([String])
+- `imageUrl` (String, default: '')
+- `favorite` (Boolean, default: false)
+- `pinned` (Boolean, default: false)
+- `deleted` (Boolean, default: false)
+- `user` (ObjectId, ref: 'User', required)
+- `createdAt` & `updatedAt` (Date)
 
 ## How to Run
-
-### Prerequisites
-- Node.js (v16+)
-- MongoDB (Local instance or MongoDB Atlas URI)
-
-### Steps
-1. **Clone repository and install dependencies**:
+1. Install dependencies:
    ```bash
    npm install
    ```
-
-2. **Configure Environment Variables**:
-   Create or verify `.env` in the root directory:
+2. Configure `.env`:
    ```env
    PORT=5000
    MONGO_URI=mongodb://127.0.0.1:27017/notesheaven
    JWT_SECRET=notesheaven_super_secret_jwt_key_2026
    ```
-
-3. **Start the Application**:
+3. Start the application:
    ```bash
-   # Production mode
    npm start
-
-   # Development mode with auto-reload
-   npm run dev
    ```
-
-4. **Access in Browser**:
-   Open **`http://localhost:5000`** in your browser.
-
----
+4. Open `http://localhost:5000` in your browser.
 
 ## Environment Variables
-| Variable | Description | Example / Default |
-|---|---|---|
-| `PORT` | Port number the Express web server listens on | `5000` |
-| `MONGO_URI` | MongoDB connection string URI | `mongodb://127.0.0.1:27017/notesheaven` |
-| `JWT_SECRET` | Secret key used to sign and verify JSON Web Tokens | `notesheaven_super_secret_jwt_key_2026` |
-
----
+- `PORT`: Server port (default: `5000`)
+- `MONGO_URI`: MongoDB connection string
+- `JWT_SECRET`: Secret key for JWT signing
 
 ## Future Improvements
-- Rich text / Markdown preview formatting for code snippets and mathematical formulas.
-- Export notes as PDF or Markdown files.
-- Note sharing via read-only shared links.
-- Note reminders and revision scheduler.
+- Markdown rendering & code syntax highlighting.
+- Export notes to PDF or Markdown.
+- Shareable read-only note links.
