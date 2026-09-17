@@ -88,6 +88,7 @@ Async JavaScript & Promises:
 function generateToken(user) {
   const secret = process.env.JWT_SECRET || 'notesheaven_super_secret_jwt_key_2026';
   return jwt.sign(
+  //This is called the payload, You're putting some user information inside the JWT.
     { id: user._id, name: user.name, email: user.email },
     secret,
     { expiresIn: '7d' }
