@@ -46,7 +46,6 @@ notesHeaven2/
 ├── routes/
 │   ├── auth.js         # Auth routes
 │   └── notes.js        # Notes API routes
-├── .env                # Environment variables
 ├── package.json        # Dependencies & scripts
 └── server.js           # Server entry point
 ```
