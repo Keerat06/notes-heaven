@@ -1,5 +1,5 @@
 /* ==========================================================
-   NOTES HEAVEN - Common Utilities & Auth Helper
+   NOTES HEAVEN - Common Utilities, Auth Helper & UI Handlers
    ========================================================== */
 
 const API_BASE = '/api';
@@ -55,7 +55,6 @@ async function authFetch(endpoint, options = {}) {
     const data = await response.json().catch(() => ({}));
 
     if (response.status === 401) {
-      // Token expired or invalid
       Auth.clearAuth();
       if (!window.location.pathname.includes('login.html') && !window.location.pathname.includes('register.html')) {
         window.location.href = '/login.html';
@@ -69,7 +68,6 @@ async function authFetch(endpoint, options = {}) {
 
     return data;
   } catch (error) {
-    console.error('API Error:', error);
     throw error;
   }
 }
@@ -140,7 +138,7 @@ function initSidebarUser() {
       showToast('Logged out successfully', 'info');
       setTimeout(() => {
         window.location.href = '/login.html';
-      }, 500);
+      }, 400);
     });
   }
 
@@ -152,7 +150,6 @@ function initSidebarUser() {
       sidebar.classList.toggle('open');
     });
 
-    // Close on outside click
     document.addEventListener('click', (e) => {
       if (sidebar.classList.contains('open') && !sidebar.contains(e.target) && !mobileToggle.contains(e.target)) {
         sidebar.classList.remove('open');
@@ -195,7 +192,7 @@ function showToast(message, type = 'info') {
   toast.className = `toast toast-${type}`;
 
   const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️';
-  toast.innerHTML = `<span>${icon}</span> <span>${message}</span>`;
+  toast.innerHTML = `<span>${icon}</span> <span>${escapeHtml(message)}</span>`;
 
   container.appendChild(toast);
 
@@ -215,6 +212,187 @@ function formatDate(dateStr) {
     month: 'short',
     day: 'numeric',
     year: 'numeric'
+  });
+}
+
+// Simple HTML Escape helper
+function escapeHtml(text) {
+  if (!text) return '';
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+// Note Card Template Generator
+function createNoteCardHtml(note, isTrashPage = false) {
+  const safeTitle = escapeHtml(note.title);
+  const safeContent = escapeHtml(note.content);
+  const safeSubject = escapeHtml(note.subject || 'General');
+  const dateStr = formatDate(note.updatedAt || note.createdAt);
+
+  const tagsHtml = (note.tags || []).map(t => `<span class="tag-pill">#${escapeHtml(t)}</span>`).join('');
+
+  if (isTrashPage) {
+    return `
+      <div class="note-card" data-id="${note._id}">
+        <div class="card-top">
+          <span class="subject-badge" data-subject="${safeSubject}">${safeSubject}</span>
+        </div>
+        <h4 class="card-title">${safeTitle}</h4>
+        <div class="card-preview">${safeContent}</div>
+        <div class="card-tags">${tagsHtml}</div>
+        <div class="card-footer">
+          <span class="card-date">Deleted ${dateStr}</span>
+          <div class="card-footer-buttons">
+            <button class="btn btn-secondary btn-sm restore-note-btn" data-id="${note._id}">
+              🔄 Restore
+            </button>
+            <button class="btn btn-danger btn-sm perm-delete-note-btn" data-id="${note._id}">
+              🗑️ Delete Forever
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="note-card ${note.pinned ? 'pinned' : ''}" data-id="${note._id}">
+      <div class="card-top">
+        <span class="subject-badge" data-subject="${safeSubject}">${safeSubject}</span>
+        <div class="card-actions-quick">
+          <button class="icon-btn-ghost pin-toggle-btn ${note.pinned ? 'active-pin' : ''}" 
+                  data-id="${note._id}" data-pinned="${note.pinned}" title="${note.pinned ? 'Unpin note' : 'Pin note'}">
+            📌
+          </button>
+          <button class="icon-btn-ghost fav-toggle-btn ${note.favorite ? 'active-fav' : ''}" 
+                  data-id="${note._id}" data-favorite="${note.favorite}" title="${note.favorite ? 'Remove from favorites' : 'Add to favorites'}">
+            ${note.favorite ? '★' : '☆'}
+          </button>
+        </div>
+      </div>
+      <h4 class="card-title">${safeTitle}</h4>
+      <div class="card-preview">${safeContent}</div>
+      <div class="card-tags">${tagsHtml}</div>
+      <div class="card-footer">
+        <span class="card-date">Updated ${dateStr}</span>
+        <div class="card-footer-buttons">
+          <a href="/editor.html?id=${note._id}" class="btn btn-secondary btn-sm" title="Edit note">
+            ✏️ Edit
+          </a>
+          <button class="btn-icon btn-sm trash-note-btn" data-id="${note._id}" title="Move to trash">
+            🗑️
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// Attach event listeners to card buttons (Pin, Favorite, Soft Delete, Restore, Permanent Delete)
+function attachCardEvents(container, refreshCallback) {
+  const triggerRefresh = () => {
+    if (typeof refreshCallback === 'function') {
+      refreshCallback();
+    } else if (typeof window.reloadNotes === 'function') {
+      window.reloadNotes();
+    } else if (typeof window.loadDashboardData === 'function') {
+      window.loadDashboardData();
+    }
+    updateSidebarBadges();
+  };
+
+  // Pin Toggle: PATCH /api/notes/:id/pin
+  container.querySelectorAll('.pin-toggle-btn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const id = btn.dataset.id;
+      const currentPinned = btn.dataset.pinned === 'true';
+      try {
+        await authFetch(`/notes/${id}/pin`, {
+          method: 'PATCH',
+          body: JSON.stringify({ pinned: !currentPinned })
+        });
+        showToast(!currentPinned ? 'Note pinned to top' : 'Note unpinned', 'success');
+        triggerRefresh();
+      } catch (err) {
+        showToast('Failed to toggle pin', 'error');
+      }
+    });
+  });
+
+  // Favorite Toggle: PATCH /api/notes/:id/favorite
+  container.querySelectorAll('.fav-toggle-btn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const id = btn.dataset.id;
+      const currentFav = btn.dataset.favorite === 'true';
+      try {
+        await authFetch(`/notes/${id}/favorite`, {
+          method: 'PATCH',
+          body: JSON.stringify({ favorite: !currentFav })
+        });
+        showToast(!currentFav ? 'Added to favorites' : 'Removed from favorites', 'success');
+        triggerRefresh();
+      } catch (err) {
+        showToast('Failed to toggle favorite', 'error');
+      }
+    });
+  });
+
+  // Trash / Soft Delete: DELETE /api/notes/:id
+  container.querySelectorAll('.trash-note-btn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const id = btn.dataset.id;
+      if (!confirm('Move this note to trash?')) return;
+
+      try {
+        await authFetch(`/notes/${id}`, {
+          method: 'DELETE'
+        });
+        showToast('Note moved to trash', 'info');
+        triggerRefresh();
+      } catch (err) {
+        showToast('Failed to delete note', 'error');
+      }
+    });
+  });
+
+  // Restore Note: PATCH /api/notes/:id/restore
+  container.querySelectorAll('.restore-note-btn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const id = btn.dataset.id;
+      try {
+        await authFetch(`/notes/${id}/restore`, {
+          method: 'PATCH'
+        });
+        showToast('Note restored successfully!', 'success');
+        triggerRefresh();
+      } catch (err) {
+        showToast('Failed to restore note', 'error');
+      }
+    });
+  });
+
+  // Permanent Delete: DELETE /api/notes/:id/permanent
+  container.querySelectorAll('.perm-delete-note-btn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const id = btn.dataset.id;
+      if (!confirm('Permanently delete this note? This action cannot be undone.')) return;
+
+      try {
+        await authFetch(`/notes/${id}/permanent`, {
+          method: 'DELETE'
+        });
+        showToast('Note permanently deleted', 'info');
+        triggerRefresh();
+      } catch (err) {
+        showToast('Failed to delete note permanently', 'error');
+      }
+    });
   });
 }
 

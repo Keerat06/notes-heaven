@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const pathname = window.location.pathname;
 
-  // If on Note Editor page
+  // Note Editor page
   if (pathname.includes('editor.html')) {
     initEditorPage();
     return;
@@ -54,7 +54,7 @@ function initNotesListPage(mode = 'all') {
       debounceTimer = setTimeout(() => {
         currentFilters.search = e.target.value.trim();
         loadNotesList();
-      }, 300);
+      }, 250);
     });
   }
 
@@ -98,7 +98,7 @@ async function loadNotesList() {
   try {
     container.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);">Loading notes...</div>`;
 
-    let query = `?sort=${currentFilters.sort}`;
+    let query = `?sort=${encodeURIComponent(currentFilters.sort)}`;
 
     if (currentFilters.mode === 'trash') {
       query += '&trash=true';
@@ -122,26 +122,29 @@ async function loadNotesList() {
     }
 
     if (data.notes.length === 0) {
-      let emptyMsg = 'No notes found.';
-      let emptySubtitle = 'Try changing your search or filter criteria.';
+      let emptyTitle = 'No notes yet';
+      let emptySubtitle = 'Create your first note.';
 
-      if (currentFilters.mode === 'favorites') {
-        emptyMsg = 'No favorite notes yet';
-        emptySubtitle = 'Click the star icon on any note to mark it as a favorite for quick access.';
+      if (currentFilters.search) {
+        emptyTitle = 'No matching notes found';
+        emptySubtitle = 'Try searching for different keywords or clear filters.';
+      } else if (currentFilters.mode === 'favorites') {
+        emptyTitle = 'No favorites yet';
+        emptySubtitle = 'Favorite important notes to find them quickly.';
       } else if (currentFilters.mode === 'pinned') {
-        emptyMsg = 'No pinned notes yet';
+        emptyTitle = 'No pinned notes yet';
         emptySubtitle = 'Pin important study notes to keep them at the top of your list.';
       } else if (currentFilters.mode === 'trash') {
-        emptyMsg = 'Trash is empty';
-        emptySubtitle = 'Notes you move to trash will show up here before permanent deletion.';
+        emptyTitle = 'Trash is empty';
+        emptySubtitle = 'Deleted notes will appear here.';
       }
 
       container.innerHTML = `
         <div class="empty-state">
-          <div class="empty-icon">${currentFilters.mode === 'trash' ? '🗑️' : currentFilters.mode === 'favorites' ? '⭐' : '📋'}</div>
-          <h3 class="empty-title">${emptyMsg}</h3>
-          <p class="empty-subtitle">${emptySubtitle}</p>
-          ${currentFilters.mode !== 'trash' ? '<a href="/editor.html" class="btn btn-primary">➕ Create Note</a>' : ''}
+          <div class="empty-icon">${currentFilters.mode === 'trash' ? '🗑️' : currentFilters.mode === 'favorites' ? '⭐' : currentFilters.mode === 'pinned' ? '📌' : '📝'}</div>
+          <h3 class="empty-title">${escapeHtml(emptyTitle)}</h3>
+          <p class="empty-subtitle">${escapeHtml(emptySubtitle)}</p>
+          ${currentFilters.mode !== 'trash' && !currentFilters.search ? '<a href="/editor.html" class="btn btn-primary" style="margin-top: 14px;">➕ Create Note</a>' : ''}
         </div>
       `;
       return;
@@ -149,21 +152,20 @@ async function loadNotesList() {
 
     const isTrash = currentFilters.mode === 'trash';
     container.innerHTML = data.notes.map(note => createNoteCardHtml(note, isTrash)).join('');
-    attachCardEvents(container);
+    attachCardEvents(container, loadNotesList);
 
   } catch (error) {
-    console.error('Error loading notes list:', error);
     container.innerHTML = `
       <div class="empty-state">
         <h3 class="empty-title" style="color: var(--accent-red)">Error loading notes</h3>
         <p class="empty-subtitle">${escapeHtml(error.message)}</p>
-        <button class="btn btn-secondary" onclick="loadNotesList()">Retry</button>
+        <button class="btn btn-secondary" onclick="loadNotesList()" style="margin-top: 12px;">Retry</button>
       </div>
     `;
   }
 }
 
-// Global reload alias for card event handlers
+// Make loadNotesList globally available
 window.reloadNotes = loadNotesList;
 
 // ==========================================================
@@ -204,7 +206,7 @@ async function initEditorPage() {
       showToast('Could not load note for editing', 'error');
       setTimeout(() => {
         window.location.href = '/notes.html';
-      }, 1200);
+      }, 1000);
       return;
     }
   } else {
@@ -222,8 +224,15 @@ async function initEditorPage() {
     const favorite = favCheckbox.checked;
     const pinned = pinCheckbox.checked;
 
-    if (!title || !content) {
-      showToast('Title and content are required', 'error');
+    if (!title) {
+      showToast('Note title cannot be empty', 'error');
+      titleInput.focus();
+      return;
+    }
+
+    if (!content) {
+      showToast('Note content cannot be empty', 'error');
+      contentInput.focus();
       return;
     }
 

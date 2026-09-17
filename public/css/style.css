@@ -1,21 +1,29 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
+  /* Standard CSS Theme Variables */
+  --background: #f8fafc;
+  --card: #ffffff;
+  --text: #0f172a;
+  --muted: #64748b;
+  --border: #e2e8f0;
+  --accent: #4f46e5;
+
   /* Color Palette - Light Mode */
-  --bg-primary: #f8fafc;
+  --bg-primary: var(--background);
   --bg-secondary: #ffffff;
   --bg-tertiary: #f1f5f9;
-  --bg-card: #ffffff;
+  --bg-card: var(--card);
   --bg-card-hover: #fbfcfe;
   
-  --text-main: #0f172a;
-  --text-muted: #64748b;
+  --text-main: var(--text);
+  --text-muted: var(--muted);
   --text-light: #94a3b8;
   
-  --border-color: #e2e8f0;
+  --border-color: var(--border);
   --border-focus: #6366f1;
   
-  --primary: #4f46e5;
+  --primary: var(--accent);
   --primary-hover: #4338ca;
   --primary-light: #eef2ff;
   --primary-text: #4338ca;
@@ -51,21 +59,29 @@
 }
 
 [data-theme="dark"] {
+  /* Standard CSS Theme Variables - Dark Mode */
+  --background: #0f172a;
+  --card: #1e293b;
+  --text: #f8fafc;
+  --muted: #94a3b8;
+  --border: #334155;
+  --accent: #6366f1;
+
   /* Color Palette - Dark Mode */
-  --bg-primary: #0f172a;
+  --bg-primary: var(--background);
   --bg-secondary: #1e293b;
   --bg-tertiary: #334155;
-  --bg-card: #1e293b;
+  --bg-card: var(--card);
   --bg-card-hover: #243248;
   
-  --text-main: #f8fafc;
-  --text-muted: #94a3b8;
+  --text-main: var(--text);
+  --text-muted: var(--muted);
   --text-light: #64748b;
   
-  --border-color: #334155;
+  --border-color: var(--border);
   --border-focus: #818cf8;
   
-  --primary: #6366f1;
+  --primary: var(--accent);
   --primary-hover: #4f46e5;
   --primary-light: #2e365e;
   --primary-text: #c7d2fe;

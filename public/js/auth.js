@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       try {
         submitBtn.disabled = true;
-        submitBtn.textContent = 'Logging in...';
+        submitBtn.textContent = 'Signing In...';
 
         const response = await fetch('/api/auth/login', {
           method: 'POST',
@@ -58,7 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         setTimeout(() => {
           window.location.href = '/dashboard.html';
-        }, 600);
+        }, 500);
       } catch (error) {
         showAlert(error.message);
       } finally {
@@ -112,11 +112,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         Auth.setAuth(data.token, data.user);
-        showAlert('Account created! Setting up starter notes...', false);
+        showAlert('Account created! Setting up your workspace...', false);
 
         setTimeout(() => {
           window.location.href = '/dashboard.html';
-        }, 800);
+        }, 600);
       } catch (error) {
         showAlert(error.message);
       } finally {

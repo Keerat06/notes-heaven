@@ -100,7 +100,7 @@ router.post('/register', async (req, res) => {
     const { name, email, password } = req.body;
 
     // Validation
-    if (!name || !email || !password) {
+    if (!name || !name.trim() || !email || !email.trim() || !password) {
       return res.status(400).json({
         success: false,
         message: 'Please provide all required fields: name, email, and password.'
@@ -115,7 +115,7 @@ router.post('/register', async (req, res) => {
     }
 
     // Check existing user
-    const existingUser = await User.findOne({ email: email.toLowerCase() });
+    const existingUser = await User.findOne({ email: email.toLowerCase().trim() });
     if (existingUser) {
       return res.status(400).json({
         success: false,
@@ -156,7 +156,6 @@ router.post('/register', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Registration Error:', error);
     return res.status(500).json({
       success: false,
       message: 'Server error during registration. Please try again later.'
@@ -208,7 +207,6 @@ router.post('/login', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Login Error:', error);
     return res.status(500).json({
       success: false,
       message: 'Server error during login. Please try again later.'
@@ -236,7 +234,6 @@ router.get('/me', authMiddleware, async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Fetch Me Error:', error);
     return res.status(500).json({
       success: false,
       message: 'Server error fetching user profile.'

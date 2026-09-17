@@ -1,12 +1,18 @@
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose');
 const Note = require('../models/Note');
 const authMiddleware = require('../middleware/auth');
 
 // All notes routes require authentication
 router.use(authMiddleware);
 
-// GET /api/notes/stats - Get dashboard metrics
+// Helper to validate MongoDB ObjectId
+function isValidObjectId(id) {
+  return mongoose.Types.ObjectId.isValid(id);
+}
+
+// GET /api/notes/stats - Get dashboard metrics for authenticated user
 router.get('/stats', async (req, res) => {
   try {
     const userId = req.user.id;
@@ -16,13 +22,14 @@ router.get('/stats', async (req, res) => {
     const pinnedNotes = await Note.countDocuments({ user: userId, deleted: false, pinned: true });
     const trashNotes = await Note.countDocuments({ user: userId, deleted: true });
 
-    // Distinct subjects with count
+    // Distinct subjects with count for active notes
     const subjectAggregation = await Note.aggregate([
-      { $match: { user: new (require('mongoose').Types.ObjectId)(userId), deleted: false } },
+      { $match: { user: new mongoose.Types.ObjectId(userId), deleted: false } },
       { $group: { _id: '$subject', count: { $sum: 1 } } },
       { $sort: { count: -1 } }
     ]);
 
+    // 5 most recent active notes
     const recentNotes = await Note.find({ user: userId, deleted: false })
       .sort({ updatedAt: -1 })
       .limit(5);
@@ -40,7 +47,6 @@ router.get('/stats', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Stats Error:', error);
     return res.status(500).json({
       success: false,
       message: 'Failed to calculate note statistics.'
@@ -91,8 +97,10 @@ router.get('/', async (req, res) => {
 
     // Sorting
     let sortQuery = { pinned: -1, updatedAt: -1 };
-    if (sort === 'oldest') {
-      sortQuery = { updatedAt: 1 };
+    if (sort === 'oldest' || sort === 'created_asc') {
+      sortQuery = { createdAt: 1 };
+    } else if (sort === 'created_desc') {
+      sortQuery = { createdAt: -1 };
     } else if (sort === 'title_asc') {
       sortQuery = { title: 1 };
     } else if (sort === 'title_desc') {
@@ -109,7 +117,6 @@ router.get('/', async (req, res) => {
       notes
     });
   } catch (error) {
-    console.error('Get Notes Error:', error);
     return res.status(500).json({
       success: false,
       message: 'Failed to retrieve notes.'
@@ -117,9 +124,16 @@ router.get('/', async (req, res) => {
   }
 });
 
-// GET /api/notes/:id - Get a single note
+// GET /api/notes/:id - Get a single note (verifying user ownership)
 router.get('/:id', async (req, res) => {
   try {
+    if (!isValidObjectId(req.params.id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid note ID format.'
+      });
+    }
+
     const note = await Note.findOne({ _id: req.params.id, user: req.user.id });
     if (!note) {
       return res.status(404).json({
@@ -133,7 +147,6 @@ router.get('/:id', async (req, res) => {
       note
     });
   } catch (error) {
-    console.error('Get Single Note Error:', error);
     return res.status(500).json({
       success: false,
       message: 'Failed to retrieve note.'
@@ -187,7 +200,6 @@ router.post('/', async (req, res) => {
       note: newNote
     });
   } catch (error) {
-    console.error('Create Note Error:', error);
     return res.status(500).json({
       success: false,
       message: 'Failed to create note.'
@@ -195,9 +207,16 @@ router.post('/', async (req, res) => {
   }
 });
 
-// PUT /api/notes/:id - Update an existing note
+// PUT /api/notes/:id - Update an existing note (verifying user ownership)
 router.put('/:id', async (req, res) => {
   try {
+    if (!isValidObjectId(req.params.id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid note ID format.'
+      });
+    }
+
     const { title, content, subject, tags, favorite, pinned, deleted } = req.body;
 
     const note = await Note.findOne({ _id: req.params.id, user: req.user.id });
@@ -208,8 +227,20 @@ router.put('/:id', async (req, res) => {
       });
     }
 
-    if (title !== undefined) note.title = title.trim();
-    if (content !== undefined) note.content = content.trim();
+    if (title !== undefined) {
+      if (!title.trim()) {
+        return res.status(400).json({ success: false, message: 'Note title cannot be empty.' });
+      }
+      note.title = title.trim();
+    }
+
+    if (content !== undefined) {
+      if (!content.trim()) {
+        return res.status(400).json({ success: false, message: 'Note content cannot be empty.' });
+      }
+      note.content = content.trim();
+    }
+
     if (subject !== undefined) note.subject = subject.trim() || 'General';
     if (favorite !== undefined) note.favorite = Boolean(favorite);
     if (pinned !== undefined) note.pinned = Boolean(pinned);
@@ -232,7 +263,6 @@ router.put('/:id', async (req, res) => {
       note
     });
   } catch (error) {
-    console.error('Update Note Error:', error);
     return res.status(500).json({
       success: false,
       message: 'Failed to update note.'
@@ -240,7 +270,144 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// DELETE /api/notes/trash/empty - Permanently empty trash
+// PATCH /api/notes/:id/favorite - Toggle or update favorite status
+router.patch('/:id/favorite', async (req, res) => {
+  try {
+    if (!isValidObjectId(req.params.id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid note ID format.'
+      });
+    }
+
+    const note = await Note.findOne({ _id: req.params.id, user: req.user.id });
+    if (!note) {
+      return res.status(404).json({
+        success: false,
+        message: 'Note not found.'
+      });
+    }
+
+    const newFav = req.body.favorite !== undefined ? Boolean(req.body.favorite) : !note.favorite;
+    note.favorite = newFav;
+    note.updatedAt = Date.now();
+    await note.save();
+
+    return res.json({
+      success: true,
+      message: newFav ? 'Note added to favorites.' : 'Note removed from favorites.',
+      note
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to update favorite status.'
+    });
+  }
+});
+
+// PATCH /api/notes/:id/pin - Toggle or update pin status
+router.patch('/:id/pin', async (req, res) => {
+  try {
+    if (!isValidObjectId(req.params.id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid note ID format.'
+      });
+    }
+
+    const note = await Note.findOne({ _id: req.params.id, user: req.user.id });
+    if (!note) {
+      return res.status(404).json({
+        success: false,
+        message: 'Note not found.'
+      });
+    }
+
+    const newPinned = req.body.pinned !== undefined ? Boolean(req.body.pinned) : !note.pinned;
+    note.pinned = newPinned;
+    note.updatedAt = Date.now();
+    await note.save();
+
+    return res.json({
+      success: true,
+      message: newPinned ? 'Note pinned to top.' : 'Note unpinned.',
+      note
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to update pin status.'
+    });
+  }
+});
+
+// PATCH /api/notes/:id/restore - Restore note from trash
+router.patch('/:id/restore', async (req, res) => {
+  try {
+    if (!isValidObjectId(req.params.id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid note ID format.'
+      });
+    }
+
+    const note = await Note.findOne({ _id: req.params.id, user: req.user.id });
+    if (!note) {
+      return res.status(404).json({
+        success: false,
+        message: 'Note not found.'
+      });
+    }
+
+    note.deleted = false;
+    note.updatedAt = Date.now();
+    await note.save();
+
+    return res.json({
+      success: true,
+      message: 'Note restored successfully!',
+      note
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to restore note.'
+    });
+  }
+});
+
+// DELETE /api/notes/:id/permanent - Permanently delete note from database
+router.delete('/:id/permanent', async (req, res) => {
+  try {
+    if (!isValidObjectId(req.params.id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid note ID format.'
+      });
+    }
+
+    const note = await Note.findOneAndDelete({ _id: req.params.id, user: req.user.id });
+    if (!note) {
+      return res.status(404).json({
+        success: false,
+        message: 'Note not found.'
+      });
+    }
+
+    return res.json({
+      success: true,
+      message: 'Note permanently deleted.'
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to permanently delete note.'
+    });
+  }
+});
+
+// DELETE /api/notes/trash/empty - Permanently empty all trash for user
 router.delete('/trash/empty', async (req, res) => {
   try {
     const result = await Note.deleteMany({ user: req.user.id, deleted: true });
@@ -249,7 +416,6 @@ router.delete('/trash/empty', async (req, res) => {
       message: `Trash emptied. ${result.deletedCount} notes permanently removed.`
     });
   } catch (error) {
-    console.error('Empty Trash Error:', error);
     return res.status(500).json({
       success: false,
       message: 'Failed to empty trash.'
@@ -257,9 +423,16 @@ router.delete('/trash/empty', async (req, res) => {
   }
 });
 
-// DELETE /api/notes/:id - Move to trash or permanently delete
+// DELETE /api/notes/:id - Normal delete: moves note to trash (soft delete)
 router.delete('/:id', async (req, res) => {
   try {
+    if (!isValidObjectId(req.params.id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid note ID format.'
+      });
+    }
+
     const { permanent } = req.query;
     const note = await Note.findOne({ _id: req.params.id, user: req.user.id });
 
@@ -270,8 +443,8 @@ router.delete('/:id', async (req, res) => {
       });
     }
 
-    if (permanent === 'true' || note.deleted) {
-      // Permanent removal
+    if (permanent === 'true') {
+      // Permanent removal fallback if requested via query
       await Note.findByIdAndDelete(req.params.id);
       return res.json({
         success: true,
@@ -280,15 +453,16 @@ router.delete('/:id', async (req, res) => {
     } else {
       // Soft delete: move to trash
       note.deleted = true;
-      note.pinned = false; // unpin on delete
+      note.pinned = false; // unpin when trashed
+      note.updatedAt = Date.now();
       await note.save();
       return res.json({
         success: true,
-        message: 'Note moved to trash.'
+        message: 'Note moved to trash.',
+        note
       });
     }
   } catch (error) {
-    console.error('Delete Note Error:', error);
     return res.status(500).json({
       success: false,
       message: 'Failed to delete note.'
@@ -296,7 +470,7 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-// POST /api/notes/seed - Seed sample notes manually
+// POST /api/notes/seed - Seed sample starter notes for user
 router.post('/seed', async (req, res) => {
   try {
     const sampleNotes = [
@@ -377,7 +551,6 @@ Join Types:
       message: 'Sample notes seeded successfully!'
     });
   } catch (error) {
-    console.error('Seed Notes Error:', error);
     return res.status(500).json({
       success: false,
       message: 'Failed to seed sample notes.'
