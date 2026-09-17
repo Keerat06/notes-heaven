@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notes Heaven - The Smart Study Companion</title>
+  <meta name="description" content="A clean, modern student note-taking web application for engineering and college subjects.">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <!-- Landing Navbar -->
+  <nav class="landing-nav">
+    <div class="sidebar-header" style="border: none; padding: 0;">
+      <div class="logo-icon">NH</div>
+      <div class="logo-text">Notes<span>Heaven</span></div>
+    </div>
+    <div style="display: flex; gap: 12px; align-items: center;">
+      <button class="btn-icon theme-toggle-btn" title="Toggle theme">
+        <span class="theme-icon">🌙</span>
+      </button>
+      <a href="/login.html" class="btn btn-secondary">Sign In</a>
+      <a href="/register.html" class="btn btn-primary">Get Started</a>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <main>
+    <section class="landing-hero">
+      <span class="landing-badge">🎓 Built for College & Engineering Students</span>
+      <h1 class="landing-title">Your Ultimate Space for <span>Class Notes & Revisions</span></h1>
+      <p class="landing-desc">
+        Organize, tag, pin, and access your lecture notes for DAA, DBMS, Operating Systems, Web Development, and all your college coursework in one distraction-free place.
+      </p>
+      <div class="landing-cta">
+        <a href="/register.html" class="btn btn-primary" style="padding: 12px 28px; font-size: 1rem;">
+          🚀 Start Taking Notes Free
+        </a>
+        <a href="/login.html" class="btn btn-secondary" style="padding: 12px 24px; font-size: 1rem;">
+          🔑 Existing User Login
+        </a>
+      </div>
+    </section>
+
+    <!-- Features Grid -->
+    <section class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">📚</div>
+        <h3>Subject Categorization</h3>
+        <p>Keep your notes structured by subject: DAA, DBMS, OS, Web Dev, and custom subjects tailored to your semester syllabus.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">📌</div>
+        <h3>Pin & Favorite</h3>
+        <p>Pin high-priority exam topics and star key definitions so you never lose track during exam preparation.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">🔍</div>
+        <h3>Instant Search & Filter</h3>
+        <p>Blazing fast search across note titles, content, and tags to find algorithms, code snippets, and concepts immediately.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">🌙</div>
+        <h3>Clean Dark & Light Modes</h3>
+        <p>Easy on the eyes for late-night exam cram sessions with responsive mobile, tablet, and desktop layouts.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer style="text-align: center; padding: 24px; color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid var(--border-color);">
+    Notes Heaven &copy; 2026 • Simple Full-Stack Student Notes Web Application
+  </footer>
+
+  <script src="/js/common.js"></script>
+</body>
+</html>

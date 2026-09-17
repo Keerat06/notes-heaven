@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - Notes Heaven</title>
+  <meta name="description" content="View your student notes statistics, subjects, and recent revisions.">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo-icon">NH</div>
+        <div class="logo-text">Notes<span>Heaven</span></div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section-title">Navigation</div>
+        
+        <a href="/dashboard.html" class="nav-item active">
+          <div class="nav-item-content">
+            <span>📊</span>
+            <span>Dashboard</span>
+          </div>
+        </a>
+
+        <a href="/notes.html" class="nav-item">
+          <div class="nav-item-content">
+            <span>📝</span>
+            <span>All Notes</span>
+          </div>
+          <span class="nav-badge badge-all-notes">0</span>
+        </a>
+
+        <a href="/favorites.html" class="nav-item">
+          <div class="nav-item-content">
+            <span>⭐</span>
+            <span>Favorites</span>
+          </div>
+          <span class="nav-badge badge-fav-notes">0</span>
+        </a>
+
+        <a href="/pinned.html" class="nav-item">
+          <div class="nav-item-content">
+            <span>📌</span>
+            <span>Pinned</span>
+          </div>
+          <span class="nav-badge badge-pin-notes">0</span>
+        </a>
+
+        <a href="/trash.html" class="nav-item">
+          <div class="nav-item-content">
+            <span>🗑️</span>
+            <span>Trash</span>
+          </div>
+          <span class="nav-badge badge-trash-notes">0</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-profile">
+          <div class="user-avatar">U</div>
+          <div class="user-details">
+            <div class="user-name">Loading...</div>
+            <div class="user-email">...</div>
+          </div>
+        </div>
+        <div class="sidebar-actions">
+          <button class="btn-icon theme-toggle-btn" title="Toggle Dark/Light Mode">
+            <span class="theme-icon">🌙</span>
+          </button>
+          <button class="btn btn-secondary btn-sm logout-btn" title="Sign out">
+            🚪 Logout
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Wrapper -->
+    <div class="main-wrapper">
+      <!-- Top Navbar -->
+      <header class="top-navbar">
+        <div class="nav-left">
+          <button class="mobile-menu-toggle" aria-label="Toggle navigation menu">☰</button>
+          <h1 class="page-title">Dashboard</h1>
+        </div>
+        <div class="nav-right">
+          <a href="/editor.html" class="btn btn-primary">
+            <span>➕</span>
+            <span>New Note</span>
+          </a>
+        </div>
+      </header>
+
+      <!-- Main Content -->
+      <main class="main-content">
+        <!-- Welcome Banner -->
+        <section class="welcome-banner">
+          <div class="welcome-text">
+            <h2 id="dashboardGreeting">Welcome back! 👋</h2>
+            <p>Here is your study and notes overview for this semester.</p>
+          </div>
+          <a href="/editor.html" class="btn btn-primary" style="display: inline-flex;">
+            ➕ Create Note
+          </a>
+        </section>
+
+        <!-- Stats Grid -->
+        <section class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon-wrapper stat-icon-indigo">📝</div>
+            <div class="stat-info">
+              <h4>Total Notes</h4>
+              <div class="stat-number" id="statTotal">0</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon-wrapper stat-icon-yellow">⭐</div>
+            <div class="stat-info">
+              <h4>Favorites</h4>
+              <div class="stat-number" id="statFavorites">0</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon-wrapper stat-icon-purple">📌</div>
+            <div class="stat-info">
+              <h4>Pinned Notes</h4>
+              <div class="stat-number" id="statPinned">0</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon-wrapper stat-icon-green">📚</div>
+            <div class="stat-info">
+              <h4>Subjects</h4>
+              <div class="stat-number" id="statSubjects">0</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Subjects Breakdown -->
+        <section style="margin-bottom: 32px;">
+          <div class="section-header">
+            <h3>Your Subjects</h3>
+            <a href="/notes.html" class="btn btn-secondary btn-sm">View All</a>
+          </div>
+          <div id="subjectsContainer" class="subjects-row">
+            <!-- Populated via JS -->
+          </div>
+        </section>
+
+        <!-- Recent Notes Section -->
+        <section>
+          <div class="section-header">
+            <h3>Recent Notes</h3>
+            <a href="/notes.html" class="btn btn-secondary btn-sm">See All Notes</a>
+          </div>
+          <div id="recentNotesContainer" class="notes-grid">
+            <!-- Populated via JS -->
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script src="/js/common.js"></script>
+  <script src="/js/dashboard.js"></script>
+</body>
+</html>

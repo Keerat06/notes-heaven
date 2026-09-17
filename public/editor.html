@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Note Editor - Notes Heaven</title>
+  <meta name="description" content="Create and edit your college notes with subjects, tags, and formatting.">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo-icon">NH</div>
+        <div class="logo-text">Notes<span>Heaven</span></div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section-title">Navigation</div>
+        
+        <a href="/dashboard.html" class="nav-item">
+          <div class="nav-item-content">
+            <span>📊</span>
+            <span>Dashboard</span>
+          </div>
+        </a>
+
+        <a href="/notes.html" class="nav-item">
+          <div class="nav-item-content">
+            <span>📝</span>
+            <span>All Notes</span>
+          </div>
+          <span class="nav-badge badge-all-notes">0</span>
+        </a>
+
+        <a href="/favorites.html" class="nav-item">
+          <div class="nav-item-content">
+            <span>⭐</span>
+            <span>Favorites</span>
+          </div>
+          <span class="nav-badge badge-fav-notes">0</span>
+        </a>
+
+        <a href="/pinned.html" class="nav-item">
+          <div class="nav-item-content">
+            <span>📌</span>
+            <span>Pinned</span>
+          </div>
+          <span class="nav-badge badge-pin-notes">0</span>
+        </a>
+
+        <a href="/trash.html" class="nav-item">
+          <div class="nav-item-content">
+            <span>🗑️</span>
+            <span>Trash</span>
+          </div>
+          <span class="nav-badge badge-trash-notes">0</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-profile">
+          <div class="user-avatar">U</div>
+          <div class="user-details">
+            <div class="user-name">Loading...</div>
+            <div class="user-email">...</div>
+          </div>
+        </div>
+        <div class="sidebar-actions">
+          <button class="btn-icon theme-toggle-btn" title="Toggle Dark/Light Mode">
+            <span class="theme-icon">🌙</span>
+          </button>
+          <button class="btn btn-secondary btn-sm logout-btn" title="Sign out">
+            🚪 Logout
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Wrapper -->
+    <div class="main-wrapper">
+      <!-- Top Navbar -->
+      <header class="top-navbar">
+        <div class="nav-left">
+          <button class="mobile-menu-toggle" aria-label="Toggle navigation menu">☰</button>
+          <h1 class="page-title" id="editorPageTitle">Create New Note</h1>
+        </div>
+        <div class="nav-right">
+          <a href="/notes.html" class="btn btn-secondary btn-sm">
+            ← Back to Notes
+          </a>
+        </div>
+      </header>
+
+      <!-- Main Content -->
+      <main class="main-content">
+        <div class="editor-container">
+          <form id="noteEditorForm" class="editor-form">
+            <!-- Note Title -->
+            <div class="form-group">
+              <label class="form-label" for="noteTitle">Note Title *</label>
+              <input 
+                type="text" 
+                id="noteTitle" 
+                class="form-input title-input" 
+                placeholder="e.g. Master Theorem & Asymptotic Notation" 
+                required 
+                autocomplete="off"
+              >
+            </div>
+
+            <!-- Subject & Tags Row -->
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="noteSubject">Subject / Course</label>
+                <select id="noteSubject" class="form-input">
+                  <option value="DAA">DAA (Design & Analysis of Algorithms)</option>
+                  <option value="DBMS">DBMS (Database Management Systems)</option>
+                  <option value="Operating Systems">Operating Systems</option>
+                  <option value="Web Development">Web Development</option>
+                  <option value="Computer Networks">Computer Networks</option>
+                  <option value="General">General / Other</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="noteTags">Tags (comma separated)</label>
+                <input 
+                  type="text" 
+                  id="noteTags" 
+                  class="form-input" 
+                  placeholder="algorithms, complexity, exam-prep" 
+                  autocomplete="off"
+                >
+              </div>
+            </div>
+
+            <!-- Note Content Textarea -->
+            <div class="form-group">
+              <label class="form-label" for="noteContent">Note Content *</label>
+              <textarea 
+                id="noteContent" 
+                class="form-textarea" 
+                placeholder="Write your study notes, definitions, formulas, or code snippets here..." 
+                required
+              ></textarea>
+            </div>
+
+            <!-- Pinned & Favorite Toggles -->
+            <div class="toggles-row">
+              <label class="toggle-label" for="notePinned">
+                <input type="checkbox" id="notePinned" class="toggle-checkbox">
+                <span>📌 Pin this note to top</span>
+              </label>
+
+              <label class="toggle-label" for="noteFavorite">
+                <input type="checkbox" id="noteFavorite" class="toggle-checkbox">
+                <span>⭐ Mark as Favorite</span>
+              </label>
+            </div>
+
+            <!-- Actions -->
+            <div class="editor-actions">
+              <a href="/notes.html" class="btn btn-secondary">
+                Cancel
+              </a>
+              <button type="submit" id="saveNoteBtn" class="btn btn-primary">
+                Save Note
+              </button>
+            </div>
+          </form>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="/js/common.js"></script>
+  <script src="/js/dashboard.js"></script>
+  <script src="/js/notes.js"></script>
+</body>
+</html>

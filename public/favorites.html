@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Favorite Notes - Notes Heaven</title>
+  <meta name="description" content="View your starred and favorite study notes in Notes Heaven.">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo-icon">NH</div>
+        <div class="logo-text">Notes<span>Heaven</span></div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section-title">Navigation</div>
+        
+        <a href="/dashboard.html" class="nav-item">
+          <div class="nav-item-content">
+            <span>📊</span>
+            <span>Dashboard</span>
+          </div>
+        </a>
+
+        <a href="/notes.html" class="nav-item">
+          <div class="nav-item-content">
+            <span>📝</span>
+            <span>All Notes</span>
+          </div>
+          <span class="nav-badge badge-all-notes">0</span>
+        </a>
+
+        <a href="/favorites.html" class="nav-item active">
+          <div class="nav-item-content">
+            <span>⭐</span>
+            <span>Favorites</span>
+          </div>
+          <span class="nav-badge badge-fav-notes">0</span>
+        </a>
+
+        <a href="/pinned.html" class="nav-item">
+          <div class="nav-item-content">
+            <span>📌</span>
+            <span>Pinned</span>
+          </div>
+          <span class="nav-badge badge-pin-notes">0</span>
+        </a>
+
+        <a href="/trash.html" class="nav-item">
+          <div class="nav-item-content">
+            <span>🗑️</span>
+            <span>Trash</span>
+          </div>
+          <span class="nav-badge badge-trash-notes">0</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-profile">
+          <div class="user-avatar">U</div>
+          <div class="user-details">
+            <div class="user-name">Loading...</div>
+            <div class="user-email">...</div>
+          </div>
+        </div>
+        <div class="sidebar-actions">
+          <button class="btn-icon theme-toggle-btn" title="Toggle Dark/Light Mode">
+            <span class="theme-icon">🌙</span>
+          </button>
+          <button class="btn btn-secondary btn-sm logout-btn" title="Sign out">
+            🚪 Logout
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Wrapper -->
+    <div class="main-wrapper">
+      <!-- Top Navbar -->
+      <header class="top-navbar">
+        <div class="nav-left">
+          <button class="mobile-menu-toggle" aria-label="Toggle navigation menu">☰</button>
+          <h1 class="page-title">Starred Favorites ⭐</h1>
+        </div>
+        <div class="nav-right">
+          <a href="/editor.html" class="btn btn-primary">
+            <span>➕</span>
+            <span>New Note</span>
+          </a>
+        </div>
+      </header>
+
+      <!-- Main Content -->
+      <main class="main-content">
+        <!-- Toolbar & Filter Controls -->
+        <div class="toolbar-bar">
+          <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input 
+              type="text" 
+              id="searchInput" 
+              class="search-input" 
+              placeholder="Search your favorite notes..." 
+              autocomplete="off"
+            >
+          </div>
+
+          <div class="filter-group">
+            <select id="sortSelect" class="select-control" aria-label="Sort notes">
+              <option value="latest">Newest / Pinned</option>
+              <option value="oldest">Oldest First</option>
+              <option value="title_asc">Title (A - Z)</option>
+              <option value="title_desc">Title (Z - A)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Notes Status Header -->
+        <div class="section-header">
+          <span style="font-size: 0.9rem; color: var(--text-muted);" id="notesCountDisplay">Loading favorites...</span>
+        </div>
+
+        <!-- Notes Grid -->
+        <div id="notesContainer" class="notes-grid">
+          <!-- Populated by JavaScript -->
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="/js/common.js"></script>
+  <script src="/js/dashboard.js"></script>
+  <script src="/js/notes.js"></script>
+</body>
+</html>
