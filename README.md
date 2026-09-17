@@ -1,26 +1,26 @@
 # Notes Heaven
 
 ## Overview
-**Notes Heaven** is a clean, student-focused full-stack note-taking web application designed for organizing, searching, and revising college coursework and technical topics (such as DAA, DBMS, Operating Systems, and Web Development). Built strictly with native web technologies on the frontend (HTML, CSS, Vanilla JavaScript) and a lightweight Node.js/Express/MongoDB backend with JWT authentication and bcrypt password hashing.
+**Notes Heaven** is a clean, student-focused full-stack note-taking web application designed for organizing, searching, and revising college coursework and technical topics (such as DAA, DBMS, Operating Systems, Computer Networks, and Web Development). Built strictly with native web standards on the frontend (HTML, CSS, Vanilla JavaScript) and a lightweight Node.js/Express/MongoDB backend with JWT authentication and bcrypt password hashing.
 
 ---
 
 ## Features
 - **Student Authentication**: Secure account registration and login using bcrypt password hashing and JSON Web Tokens (JWT) stored in `localStorage`.
 - **Complete Note Lifecycle**: Create, view, edit, soft-delete, restore, and permanently delete notes.
-- **Image & Diagram Attachments**: Attach diagrams, lecture slide screenshots, or graphs to notes via direct image URL or local file upload (converted to Base64 data URL) with live preview.
+- **Image & Diagram Attachments**: Attach lecture slide screenshots, diagrams, and graphs to notes via direct image URLs or local file uploads (converted client-side to Base64 Data URLs) with live preview and removal controls.
 - **Strict User Isolation**: Every note is strictly bound to its creator's user ID in MongoDB, preventing cross-user unauthorized access.
-- **Priority Organization**: Pin important exam revision notes to the top and star favorites for instant access.
-- **Soft Delete & Trash Management**: Deleting a note moves it safely to the Trash Bin (`deleted: true`), allowing easy restoration or permanent deletion with user confirmation.
+- **Priority Organization**: Pin important exam revision notes to the top of lists and star favorites for instant access.
+- **Soft Delete & Trash Management**: Deleting a note moves it safely to the Trash Bin (`deleted: true`), keeping active, favorite, and pinned views uncluttered while enabling easy restoration or permanent deletion with user confirmation.
 - **Search, Filter & Sorting**: Instant real-time search across note titles, contents, subjects, and tags, with subject filters and multiple sorting options (recently updated, oldest, alphabetical A-Z and Z-A).
 - **Dynamic Real-Time Dashboard**: Live statistics calculated directly from the database for active notes, favorites, pinned notes, subject counts, and recent revisions.
-- **Dark / Light Mode**: Theme switching with CSS variables (`--background`, `--card`, `--text`, `--muted`, `--border`, `--accent`) persisted in `localStorage`.
+- **Dark / Light Mode**: Theme switching powered by CSS variables (`--background`, `--card`, `--text`, `--muted`, `--border`, `--accent`) persisted across sessions in `localStorage`.
 - **Polished UX**: Smooth loading states, toast notifications, empty states with helpful guidance, delete confirmations, and responsive mobile sidebar navigation.
 
 ---
 
 ## Tech Stack
-- **Frontend**: HTML5, CSS3 (Vanilla CSS with Custom Variables), Vanilla JavaScript (ES6+)
+- **Frontend**: HTML5, CSS3 (Vanilla CSS with Custom Properties/Variables), Vanilla JavaScript (ES6+)
 - **Backend**: Node.js, Express.js
 - **Database**: MongoDB with Mongoose ODM
 - **Security & Authentication**: JSON Web Tokens (`jsonwebtoken`), Password Hashing (`bcryptjs`), CORS, Dotenv
@@ -33,18 +33,18 @@ notesHeaven2/
 ├── middleware/
 │   └── auth.js           # JWT authentication & route protection middleware
 ├── models/
-│   ├── User.js           # Mongoose User schema
-│   └── Note.js           # Mongoose Note schema
+│   ├── User.js           # Mongoose User schema (name, email, password, createdAt)
+│   └── Note.js           # Mongoose Note schema (title, content, subject, tags, imageUrl, fav, pin, deleted, user)
 ├── public/
 │   ├── css/
-│   │   └── style.css     # CSS custom properties, themes & responsive layouts
+│   │   └── style.css     # CSS custom variables, light/dark themes & responsive layouts
 │   ├── js/
 │   │   ├── auth.js       # Login & registration forms validation and submission
-│   │   ├── common.js     # Shared Auth state, API fetch helper, theme toggle, toasts
+│   │   ├── common.js     # Shared Auth state, API fetch helper, theme toggle, toast notifications
 │   │   ├── dashboard.js  # Live stats loading and dashboard metrics rendering
-│   │   └── notes.js      # Notes catalog filtering, search, sorting & note editor form
+│   │   └── notes.js      # Notes catalog filtering, search, sorting, image handling & note editor form
 │   ├── dashboard.html    # User overview & live metrics
-│   ├── editor.html       # Note creation & editing interface
+│   ├── editor.html       # Note creation & editing interface with image upload
 │   ├── favorites.html    # Starred notes view
 │   ├── index.html        # Landing page
 │   ├── login.html        # Sign-in page
@@ -71,7 +71,7 @@ notesHeaven2/
    - The password is securely hashed with `bcryptjs` using a salt work factor of 10.
    - A new `User` document is saved to MongoDB.
    - Starter notes are automatically seeded for the new user.
-   - A signed JWT token is returned containing the user's ID, name, and email.
+   - A signed JWT token is returned containing the user payload (`id`, `name`, `email`).
    - The frontend stores the token in `localStorage` (`nh_token`) and user data in `nh_user`.
 
 2. **Login Flow (`POST /api/auth/login`)**:
@@ -94,16 +94,20 @@ notesHeaven2/
 ## How Notes Work
 1. **Creation**:
    - Submitted via `/editor.html` (`POST /api/notes`).
-   - The backend sets `user: req.user.id`, `deleted: false`, and parses tags and subject.
+   - The backend sets `user: req.user.id`, `deleted: false`, and parses tags, subject, and optional `imageUrl`.
 2. **Retrieval**:
    - `GET /api/notes` retrieves notes strictly matching `{ user: req.user.id, deleted: false }`.
    - Supports query params: `?search=...`, `?subject=...`, `?favorite=true`, `?pinned=true`, `?sort=latest|oldest|title_asc|title_desc`.
 3. **Editing**:
    - `PUT /api/notes/:id` updates note fields after verifying both note ID and ownership (`user: req.user.id`).
-4. **Favorite & Pin Toggles**:
+4. **Image & Diagram Attachments**:
+   - Students can provide a direct image URL or upload a local image file.
+   - Local files are converted to Base64 Data URLs via the JavaScript `FileReader` API and saved directly into the `imageUrl` field.
+   - Note cards automatically display an image thumbnail with responsive scaling and fallback error handling.
+5. **Favorite & Pin Toggles**:
    - `PATCH /api/notes/:id/favorite` toggles or sets favorite status.
    - `PATCH /api/notes/:id/pin` toggles or sets pinned status.
-5. **Soft Delete & Trash**:
+6. **Soft Delete & Trash**:
    - `DELETE /api/notes/:id` moves the note to trash by setting `deleted: true` and unpinning it.
    - `GET /api/notes?trash=true` retrieves deleted notes.
    - `PATCH /api/notes/:id/restore` restores the note (`deleted: false`).
