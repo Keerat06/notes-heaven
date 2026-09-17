@@ -8,6 +8,7 @@
 ## Features
 - **Student Authentication**: Secure account registration and login using bcrypt password hashing and JSON Web Tokens (JWT) stored in `localStorage`.
 - **Complete Note Lifecycle**: Create, view, edit, soft-delete, restore, and permanently delete notes.
+- **Image & Diagram Attachments**: Attach diagrams, lecture slide screenshots, or graphs to notes via direct image URL or local file upload (converted to Base64 data URL) with live preview.
 - **Strict User Isolation**: Every note is strictly bound to its creator's user ID in MongoDB, preventing cross-user unauthorized access.
 - **Priority Organization**: Pin important exam revision notes to the top and star favorites for instant access.
 - **Soft Delete & Trash Management**: Deleting a note moves it safely to the Trash Bin (`deleted: true`), allowing easy restoration or permanent deletion with user confirmation.
@@ -157,6 +158,7 @@ notesHeaven2/
   content: { type: String, required: true },
   subject: { type: String, default: 'General', trim: true },
   tags: { type: [String], default: [] },
+  imageUrl: { type: String, default: '' },
   favorite: { type: Boolean, default: false },
   pinned: { type: Boolean, default: false },
   deleted: { type: Boolean, default: false },

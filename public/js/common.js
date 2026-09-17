@@ -231,6 +231,11 @@ function createNoteCardHtml(note, isTrashPage = false) {
   const dateStr = formatDate(note.updatedAt || note.createdAt);
 
   const tagsHtml = (note.tags || []).map(t => `<span class="tag-pill">#${escapeHtml(t)}</span>`).join('');
+  const imageHtml = note.imageUrl ? `
+    <div class="card-image-wrapper">
+      <img src="${escapeHtml(note.imageUrl)}" alt="${safeTitle}" class="card-image" loading="lazy" onerror="this.parentElement.style.display='none'">
+    </div>
+  ` : '';
 
   if (isTrashPage) {
     return `
@@ -238,6 +243,7 @@ function createNoteCardHtml(note, isTrashPage = false) {
         <div class="card-top">
           <span class="subject-badge" data-subject="${safeSubject}">${safeSubject}</span>
         </div>
+        ${imageHtml}
         <h4 class="card-title">${safeTitle}</h4>
         <div class="card-preview">${safeContent}</div>
         <div class="card-tags">${tagsHtml}</div>
@@ -271,6 +277,7 @@ function createNoteCardHtml(note, isTrashPage = false) {
           </button>
         </div>
       </div>
+      ${imageHtml}
       <h4 class="card-title">${safeTitle}</h4>
       <div class="card-preview">${safeContent}</div>
       <div class="card-tags">${tagsHtml}</div>

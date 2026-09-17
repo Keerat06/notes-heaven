@@ -31,6 +31,10 @@ const noteSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  imageUrl: {
+    type: String,
+    default: ''
+  },
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',

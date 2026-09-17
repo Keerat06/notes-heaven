@@ -148,6 +148,44 @@
               ></textarea>
             </div>
 
+            <!-- Image Attachment (URL or File Upload) -->
+            <div class="form-group">
+              <label class="form-label">Attached Image / Diagram (Optional)</label>
+              <div class="image-upload-wrapper">
+                <div class="image-input-options">
+                  <div style="flex: 1;">
+                    <input 
+                      type="url" 
+                      id="noteImageUrl" 
+                      class="form-input" 
+                      placeholder="Paste Image URL (e.g. https://example.com/diagram.png)" 
+                      autocomplete="off"
+                    >
+                  </div>
+                  <span class="image-input-or">OR</span>
+                  <div class="file-upload-btn-wrapper">
+                    <label for="noteImageFile" class="btn btn-secondary file-upload-label">
+                      📁 Upload Image
+                    </label>
+                    <input 
+                      type="file" 
+                      id="noteImageFile" 
+                      accept="image/png, image/jpeg, image/jpg, image/webp, image/gif, image/svg+xml"
+                      style="display: none;"
+                    >
+                  </div>
+                </div>
+
+                <!-- Image Live Preview -->
+                <div id="imagePreviewContainer" class="image-preview-container" style="display: none;">
+                  <img id="imagePreviewImg" src="" alt="Note image preview" class="editor-image-preview">
+                  <button type="button" id="removeImageBtn" class="btn btn-danger btn-sm remove-image-btn">
+                    🗑️ Remove Image
+                  </button>
+                </div>
+              </div>
+            </div>
+
             <!-- Pinned & Favorite Toggles -->
             <div class="toggles-row">
               <label class="toggle-label" for="notePinned">

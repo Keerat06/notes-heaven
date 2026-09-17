@@ -157,7 +157,7 @@ router.get('/:id', async (req, res) => {
 // POST /api/notes - Create a new note
 router.post('/', async (req, res) => {
   try {
-    const { title, content, subject, tags, favorite, pinned } = req.body;
+    const { title, content, subject, tags, favorite, pinned, imageUrl } = req.body;
 
     if (!title || !title.trim()) {
       return res.status(400).json({
@@ -188,6 +188,7 @@ router.post('/', async (req, res) => {
       tags: processedTags,
       favorite: Boolean(favorite),
       pinned: Boolean(pinned),
+      imageUrl: imageUrl && typeof imageUrl === 'string' ? imageUrl.trim() : '',
       deleted: false,
       user: req.user.id
     });
@@ -217,7 +218,7 @@ router.put('/:id', async (req, res) => {
       });
     }
 
-    const { title, content, subject, tags, favorite, pinned, deleted } = req.body;
+    const { title, content, subject, tags, favorite, pinned, deleted, imageUrl } = req.body;
 
     const note = await Note.findOne({ _id: req.params.id, user: req.user.id });
     if (!note) {
@@ -245,6 +246,7 @@ router.put('/:id', async (req, res) => {
     if (favorite !== undefined) note.favorite = Boolean(favorite);
     if (pinned !== undefined) note.pinned = Boolean(pinned);
     if (deleted !== undefined) note.deleted = Boolean(deleted);
+    if (imageUrl !== undefined) note.imageUrl = typeof imageUrl === 'string' ? imageUrl.trim() : '';
 
     if (tags !== undefined) {
       if (Array.isArray(tags)) {

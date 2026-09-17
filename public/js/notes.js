@@ -183,7 +183,79 @@ async function initEditorPage() {
   const tagsInput = document.getElementById('noteTags');
   const favCheckbox = document.getElementById('noteFavorite');
   const pinCheckbox = document.getElementById('notePinned');
+  const imageUrlInput = document.getElementById('noteImageUrl');
+  const imageFileInput = document.getElementById('noteImageFile');
+  const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+  const imagePreviewImg = document.getElementById('imagePreviewImg');
+  const removeImageBtn = document.getElementById('removeImageBtn');
   const submitBtn = document.getElementById('saveNoteBtn');
+
+  let currentImageUrl = '';
+
+  function setPreview(src) {
+    if (src && src.trim()) {
+      currentImageUrl = src.trim();
+      if (imagePreviewImg) imagePreviewImg.src = currentImageUrl;
+      if (imagePreviewContainer) imagePreviewContainer.style.display = 'flex';
+      if (imageUrlInput) imageUrlInput.value = currentImageUrl.startsWith('data:') ? '' : currentImageUrl;
+    } else {
+      currentImageUrl = '';
+      if (imagePreviewImg) imagePreviewImg.src = '';
+      if (imagePreviewContainer) imagePreviewContainer.style.display = 'none';
+      if (imageUrlInput) imageUrlInput.value = '';
+      if (imageFileInput) imageFileInput.value = '';
+    }
+  }
+
+  // Handle URL input changes
+  if (imageUrlInput) {
+    imageUrlInput.addEventListener('input', (e) => {
+      const url = e.target.value.trim();
+      if (url) {
+        setPreview(url);
+      } else {
+        setPreview('');
+      }
+    });
+  }
+
+  // Handle local File upload
+  if (imageFileInput) {
+    imageFileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      if (!file.type.startsWith('image/')) {
+        showToast('Please select a valid image file', 'error');
+        imageFileInput.value = '';
+        return;
+      }
+
+      if (file.size > 5 * 1024 * 1024) {
+        showToast('Image size exceeds 5MB limit', 'error');
+        imageFileInput.value = '';
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        setPreview(evt.target.result);
+        showToast('Image attached!', 'success');
+      };
+      reader.onerror = function() {
+        showToast('Failed to read image file', 'error');
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // Handle remove image
+  if (removeImageBtn) {
+    removeImageBtn.addEventListener('click', () => {
+      setPreview('');
+      showToast('Image removed', 'info');
+    });
+  }
 
   let isEditing = !!noteId;
 
@@ -202,6 +274,10 @@ async function initEditorPage() {
       tagsInput.value = (note.tags || []).join(', ');
       favCheckbox.checked = !!note.favorite;
       pinCheckbox.checked = !!note.pinned;
+
+      if (note.imageUrl) {
+        setPreview(note.imageUrl);
+      }
     } catch (error) {
       showToast('Could not load note for editing', 'error');
       setTimeout(() => {
@@ -246,7 +322,8 @@ async function initEditorPage() {
         subject,
         tags,
         favorite,
-        pinned
+        pinned,
+        imageUrl: currentImageUrl
       };
 
       if (isEditing) {
