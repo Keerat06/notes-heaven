@@ -1,10 +1,8 @@
-/* ==========================================================
-   NOTES HEAVEN - Common Utilities, Auth Helper & UI Handlers
-   ========================================================== */
+// Common utilities, auth helpers, and UI handlers
 
 const API_BASE = '/api';
 
-// Auth State Management
+// Auth state
 const Auth = {
   getToken() {
     return localStorage.getItem('nh_token');
@@ -34,7 +32,7 @@ const Auth = {
   }
 };
 
-// Authenticated fetch wrapper
+// Fetch with auth token
 async function authFetch(endpoint, options = {}) {
   const token = Auth.getToken();
   const headers = {
@@ -72,7 +70,7 @@ async function authFetch(endpoint, options = {}) {
   }
 }
 
-// Page Auth Guard
+// Redirect based on auth state
 function guardPage(requiresAuth = true) {
   const isAuth = Auth.isAuthenticated();
 
@@ -89,7 +87,7 @@ function guardPage(requiresAuth = true) {
   return true;
 }
 
-// Theme Management (Light / Dark)
+// Init theme from storage or system preference
 function initTheme() {
   const savedTheme = localStorage.getItem('nh_theme') || 
     (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
@@ -116,7 +114,7 @@ function updateThemeIcon(theme) {
   });
 }
 
-// Render User in Sidebar
+// Render user info in sidebar
 function initSidebarUser() {
   const user = Auth.getUser();
   if (!user) return;
@@ -129,7 +127,7 @@ function initSidebarUser() {
   if (emailEl) emailEl.textContent = user.email;
   if (avatarEl) avatarEl.textContent = user.name.charAt(0).toUpperCase();
 
-  // Logout button
+  // Logout handler
   const logoutBtn = document.querySelector('.logout-btn');
   if (logoutBtn) {
     logoutBtn.addEventListener('click', (e) => {
@@ -142,7 +140,7 @@ function initSidebarUser() {
     });
   }
 
-  // Mobile Menu Toggle
+  // Mobile sidebar toggle
   const mobileToggle = document.querySelector('.mobile-menu-toggle');
   const sidebar = document.querySelector('.sidebar');
   if (mobileToggle && sidebar) {
@@ -158,7 +156,7 @@ function initSidebarUser() {
   }
 }
 
-// Update Badge Counts in Sidebar
+// Update sidebar note counts
 async function updateSidebarBadges() {
   if (!Auth.isAuthenticated()) return;
   try {
@@ -179,7 +177,7 @@ async function updateSidebarBadges() {
   }
 }
 
-// Toast Notifications
+// Show toast notification
 function showToast(message, type = 'info') {
   let container = document.querySelector('.toast-container');
   if (!container) {
@@ -204,7 +202,7 @@ function showToast(message, type = 'info') {
   }, 3500);
 }
 
-// Format Date Utility
+// Format date string
 function formatDate(dateStr) {
   if (!dateStr) return '';
   const date = new Date(dateStr);
@@ -215,7 +213,7 @@ function formatDate(dateStr) {
   });
 }
 
-// Simple HTML Escape helper
+// Escape HTML special chars
 function escapeHtml(text) {
   if (!text) return '';
   const div = document.createElement('div');
@@ -223,7 +221,7 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
-// Note Card Template Generator
+// Generate note card HTML
 function createNoteCardHtml(note, isTrashPage = false) {
   const safeTitle = escapeHtml(note.title);
   const safeContent = escapeHtml(note.content);
@@ -296,7 +294,7 @@ function createNoteCardHtml(note, isTrashPage = false) {
   `;
 }
 
-// Attach event listeners to card buttons (Pin, Favorite, Soft Delete, Restore, Permanent Delete)
+// Attach card button events (pin, fav, trash, restore, delete)
 function attachCardEvents(container, refreshCallback) {
   const triggerRefresh = () => {
     if (typeof refreshCallback === 'function') {
@@ -309,7 +307,7 @@ function attachCardEvents(container, refreshCallback) {
     updateSidebarBadges();
   };
 
-  // Pin Toggle: PATCH /api/notes/:id/pin
+  // Pin toggle
   container.querySelectorAll('.pin-toggle-btn').forEach(btn => {
     btn.addEventListener('click', async (e) => {
       e.stopPropagation();
@@ -328,7 +326,7 @@ function attachCardEvents(container, refreshCallback) {
     });
   });
 
-  // Favorite Toggle: PATCH /api/notes/:id/favorite
+  // Favorite toggle
   container.querySelectorAll('.fav-toggle-btn').forEach(btn => {
     btn.addEventListener('click', async (e) => {
       e.stopPropagation();
@@ -347,7 +345,7 @@ function attachCardEvents(container, refreshCallback) {
     });
   });
 
-  // Trash / Soft Delete: DELETE /api/notes/:id
+  // Soft delete to trash
   container.querySelectorAll('.trash-note-btn').forEach(btn => {
     btn.addEventListener('click', async (e) => {
       e.stopPropagation();
@@ -366,7 +364,7 @@ function attachCardEvents(container, refreshCallback) {
     });
   });
 
-  // Restore Note: PATCH /api/notes/:id/restore
+  // Restore from trash
   container.querySelectorAll('.restore-note-btn').forEach(btn => {
     btn.addEventListener('click', async (e) => {
       e.stopPropagation();
@@ -383,7 +381,7 @@ function attachCardEvents(container, refreshCallback) {
     });
   });
 
-  // Permanent Delete: DELETE /api/notes/:id/permanent
+  // Permanent delete
   container.querySelectorAll('.perm-delete-note-btn').forEach(btn => {
     btn.addEventListener('click', async (e) => {
       e.stopPropagation();
@@ -403,7 +401,7 @@ function attachCardEvents(container, refreshCallback) {
   });
 }
 
-// Global DOM Ready Init
+// Init on DOM ready
 document.addEventListener('DOMContentLoaded', () => {
   initTheme();
   initSidebarUser();

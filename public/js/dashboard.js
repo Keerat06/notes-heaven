@@ -1,6 +1,4 @@
-/* ==========================================================
-   NOTES HEAVEN - Dashboard Logic
-   ========================================================== */
+// Dashboard logic
 
 document.addEventListener('DOMContentLoaded', async () => {
   if (!guardPage(true)) return;
@@ -21,7 +19,7 @@ async function loadDashboardData() {
 
     const { stats } = data;
 
-    // Update numbers
+  // Update stat numbers
     const totalEl = document.getElementById('statTotal');
     const favEl = document.getElementById('statFavorites');
     const pinEl = document.getElementById('statPinned');
@@ -32,10 +30,10 @@ async function loadDashboardData() {
     if (pinEl) pinEl.textContent = stats.pinned;
     if (subjCountEl) subjCountEl.textContent = stats.subjectsCount;
 
-    // Render Subjects Row
+  // Render subjects
     renderSubjectsRow(stats.subjects);
 
-    // Render Recent Notes
+  // Render recent notes
     renderRecentNotes(stats.recentNotes);
 
   } catch (error) {
@@ -43,7 +41,7 @@ async function loadDashboardData() {
   }
 }
 
-// Make loadDashboardData available globally for event refresh
+// Expose globally for refresh
 window.loadDashboardData = loadDashboardData;
 
 function renderSubjectsRow(subjects = []) {
@@ -86,7 +84,7 @@ function renderRecentNotes(notes = []) {
   attachCardEvents(container, loadDashboardData);
 }
 
-// Seed Sample Notes Helper
+// Seed sample notes
 async function seedSampleNotes() {
   try {
     const seedBtn = document.getElementById('seedBtn');

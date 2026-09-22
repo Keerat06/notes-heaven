@@ -6,7 +6,7 @@ const User = require('../models/User');
 const Note = require('../models/Note');
 const authMiddleware = require('../middleware/auth');
 
-// Sample starter notes for new students
+// Sample starter notes
 const SAMPLE_NOTES = [
   {
     title: 'DAA: Time Complexity & Master Theorem',
@@ -84,11 +84,11 @@ Async JavaScript & Promises:
   }
 ];
 
-// Helper: generate JWT
+// Generate JWT
 function generateToken(user) {
   const secret = process.env.JWT_SECRET || 'notesheaven_super_secret_jwt_key_2026';
   return jwt.sign(
-  //This is called the payload, You're putting some user information inside the JWT.
+    // User payload
     { id: user._id, name: user.name, email: user.email },
     secret,
     { expiresIn: '7d' }
@@ -137,7 +137,7 @@ router.post('/register', async (req, res) => {
 
     await user.save();
 
-    // Auto-seed starter notes for immediate out-of-the-box experience
+    // Seed starter notes
     const initialNotes = SAMPLE_NOTES.map(note => ({
       ...note,
       user: user._id

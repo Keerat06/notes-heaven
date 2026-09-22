@@ -4,15 +4,15 @@ const mongoose = require('mongoose');
 const Note = require('../models/Note');
 const authMiddleware = require('../middleware/auth');
 
-// All notes routes require authentication
+// Require authentication
 router.use(authMiddleware);
 
-// Helper to validate MongoDB ObjectId
+// Validate ObjectId
 function isValidObjectId(id) {
   return mongoose.Types.ObjectId.isValid(id);
 }
 
-// GET /api/notes/stats - Get dashboard metrics for authenticated user
+// GET /api/notes/stats
 router.get('/stats', async (req, res) => {
   try {
     const userId = req.user.id;
@@ -22,14 +22,14 @@ router.get('/stats', async (req, res) => {
     const pinnedNotes = await Note.countDocuments({ user: userId, deleted: false, pinned: true });
     const trashNotes = await Note.countDocuments({ user: userId, deleted: true });
 
-    // Distinct subjects with count for active notes
+    // Aggregate subject counts
     const subjectAggregation = await Note.aggregate([
       { $match: { user: new mongoose.Types.ObjectId(userId), deleted: false } },
       { $group: { _id: '$subject', count: { $sum: 1 } } },
       { $sort: { count: -1 } }
     ]);
 
-    // 5 most recent active notes
+    // Fetch 5 most recent notes
     const recentNotes = await Note.find({ user: userId, deleted: false })
       .sort({ updatedAt: -1 })
       .limit(5);
@@ -54,7 +54,7 @@ router.get('/stats', async (req, res) => {
   }
 });
 
-// GET /api/notes - Query notes with filters, search, and sorting
+// GET /api/notes
 router.get('/', async (req, res) => {
   try {
     const userId = req.user.id;
@@ -62,29 +62,29 @@ router.get('/', async (req, res) => {
 
     const query = { user: userId };
 
-    // Trash filter: defaults to active (non-deleted) notes unless trash=true
+    // Filter by trash status
     if (trash === 'true') {
       query.deleted = true;
     } else {
       query.deleted = false;
     }
 
-    // Favorite filter
+    // Filter by favorite
     if (favorite === 'true') {
       query.favorite = true;
     }
 
-    // Pinned filter
+    // Filter by pinned
     if (pinned === 'true') {
       query.pinned = true;
     }
 
-    // Subject filter
+    // Filter by subject
     if (subject && subject !== 'All') {
       query.subject = subject;
     }
 
-    // Search filter across title, content, tags, and subject
+    // Search across fields
     if (search && search.trim() !== '') {
       const searchRegex = new RegExp(search.trim(), 'i');
       query.$or = [
@@ -95,7 +95,7 @@ router.get('/', async (req, res) => {
       ];
     }
 
-    // Sorting
+    // Sort options
     let sortQuery = { pinned: -1, updatedAt: -1 };
     if (sort === 'oldest' || sort === 'created_asc') {
       sortQuery = { createdAt: 1 };
@@ -124,7 +124,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-// GET /api/notes/:id - Get a single note (verifying user ownership)
+// GET /api/notes/:id
 router.get('/:id', async (req, res) => {
   try {
     if (!isValidObjectId(req.params.id)) {
@@ -154,7 +154,7 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// POST /api/notes - Create a new note
+// POST /api/notes
 router.post('/', async (req, res) => {
   try {
     const { title, content, subject, tags, favorite, pinned, imageUrl } = req.body;
@@ -208,7 +208,7 @@ router.post('/', async (req, res) => {
   }
 });
 
-// PUT /api/notes/:id - Update an existing note (verifying user ownership)
+// PUT /api/notes/:id
 router.put('/:id', async (req, res) => {
   try {
     if (!isValidObjectId(req.params.id)) {
@@ -272,7 +272,7 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// PATCH /api/notes/:id/favorite - Toggle or update favorite status
+// PATCH /api/notes/:id/favorite
 router.patch('/:id/favorite', async (req, res) => {
   try {
     if (!isValidObjectId(req.params.id)) {
@@ -308,7 +308,7 @@ router.patch('/:id/favorite', async (req, res) => {
   }
 });
 
-// PATCH /api/notes/:id/pin - Toggle or update pin status
+// PATCH /api/notes/:id/pin
 router.patch('/:id/pin', async (req, res) => {
   try {
     if (!isValidObjectId(req.params.id)) {
@@ -344,7 +344,7 @@ router.patch('/:id/pin', async (req, res) => {
   }
 });
 
-// PATCH /api/notes/:id/restore - Restore note from trash
+// PATCH /api/notes/:id/restore
 router.patch('/:id/restore', async (req, res) => {
   try {
     if (!isValidObjectId(req.params.id)) {
@@ -379,7 +379,7 @@ router.patch('/:id/restore', async (req, res) => {
   }
 });
 
-// DELETE /api/notes/:id/permanent - Permanently delete note from database
+// DELETE /api/notes/:id/permanent
 router.delete('/:id/permanent', async (req, res) => {
   try {
     if (!isValidObjectId(req.params.id)) {
@@ -409,7 +409,7 @@ router.delete('/:id/permanent', async (req, res) => {
   }
 });
 
-// DELETE /api/notes/trash/empty - Permanently empty all trash for user
+// DELETE /api/notes/trash/empty
 router.delete('/trash/empty', async (req, res) => {
   try {
     const result = await Note.deleteMany({ user: req.user.id, deleted: true });
@@ -425,7 +425,7 @@ router.delete('/trash/empty', async (req, res) => {
   }
 });
 
-// DELETE /api/notes/:id - Normal delete: moves note to trash (soft delete)
+// DELETE /api/notes/:id
 router.delete('/:id', async (req, res) => {
   try {
     if (!isValidObjectId(req.params.id)) {
@@ -446,16 +446,16 @@ router.delete('/:id', async (req, res) => {
     }
 
     if (permanent === 'true') {
-      // Permanent removal fallback if requested via query
+      // Permanent delete fallback
       await Note.findByIdAndDelete(req.params.id);
       return res.json({
         success: true,
         message: 'Note permanently deleted.'
       });
     } else {
-      // Soft delete: move to trash
+      // Soft delete to trash
       note.deleted = true;
-      note.pinned = false; // unpin when trashed
+      note.pinned = false; // unpin note
       note.updatedAt = Date.now();
       await note.save();
       return res.json({
@@ -472,7 +472,7 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-// POST /api/notes/seed - Seed sample starter notes for user
+// POST /api/notes/seed
 router.post('/seed', async (req, res) => {
   try {
     const sampleNotes = [

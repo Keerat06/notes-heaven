@@ -1,9 +1,6 @@
-/* ==========================================================
-   NOTES HEAVEN - Authentication Logic (Login & Register)
-   ========================================================== */
-
+// Authentication logic
 document.addEventListener('DOMContentLoaded', () => {
-  // Guard: if already logged in, redirect to dashboard
+  // Redirect if authenticated
   guardPage(false);
 
   const loginForm = document.getElementById('loginForm');
@@ -22,7 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
     alertBox.style.display = 'none';
   }
 
-  // --- Handle Login Form ---
+  // Handle login form
   if (loginForm) {
     loginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -68,7 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // --- Handle Register Form ---
+  // Handle register form
   if (registerForm) {
     registerForm.addEventListener('submit', async (e) => {
       e.preventDefault();

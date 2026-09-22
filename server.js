@@ -32,17 +32,17 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Fallback for HTML navigation (if direct URL accessed)
+// Fallback for frontend navigation
 app.get('*', (req, res) => {
-  // If request is looking for an API route that wasn't matched
+  // Unmatched API route
   if (req.path.startsWith('/api/')) {
     return res.status(404).json({ success: false, message: 'API route not found' });
   }
-  // Otherwise serve index.html
+  // Serve index.html
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Connect to MongoDB & Start Server
+// Connect to DB and start server
 async function startServer() {
   try {
     console.log('Connecting to MongoDB at:', MONGO_URI);

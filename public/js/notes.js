@@ -1,19 +1,17 @@
-/* ==========================================================
-   NOTES HEAVEN - Notes List & Editor Logic
-   ========================================================== */
+// Notes list and editor logic
 
 document.addEventListener('DOMContentLoaded', async () => {
   if (!guardPage(true)) return;
 
   const pathname = window.location.pathname;
 
-  // Note Editor page
+  // Init editor page
   if (pathname.includes('editor.html')) {
     initEditorPage();
     return;
   }
 
-  // Determine current view mode
+  // Set page mode from URL
   let pageMode = 'all';
   if (pathname.includes('favorites.html')) pageMode = 'favorites';
   if (pathname.includes('pinned.html')) pageMode = 'pinned';
@@ -22,9 +20,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   initNotesListPage(pageMode);
 });
 
-// ==========================================================
-// NOTES LIST PAGE LOGIC (All, Favorites, Pinned, Trash)
-// ==========================================================
+// Notes list filters state
 let currentFilters = {
   search: '',
   subject: 'All',
@@ -35,7 +31,7 @@ let currentFilters = {
 function initNotesListPage(mode = 'all') {
   currentFilters.mode = mode;
 
-  // Parse subject from URL param (e.g. ?subject=DAA)
+  // Parse subject from URL
   const urlParams = new URLSearchParams(window.location.search);
   const subjectParam = urlParams.get('subject');
   if (subjectParam) {
@@ -165,12 +161,10 @@ async function loadNotesList() {
   }
 }
 
-// Make loadNotesList globally available
+// Expose globally for refresh
 window.reloadNotes = loadNotesList;
 
-// ==========================================================
-// NOTE EDITOR LOGIC (Create & Edit Note)
-// ==========================================================
+// Note editor logic
 async function initEditorPage() {
   const urlParams = new URLSearchParams(window.location.search);
   const noteId = urlParams.get('id');
@@ -207,7 +201,7 @@ async function initEditorPage() {
     }
   }
 
-  // Handle URL input changes
+  // Update image preview on URL input
   if (imageUrlInput) {
     imageUrlInput.addEventListener('input', (e) => {
       const url = e.target.value.trim();
@@ -219,7 +213,7 @@ async function initEditorPage() {
     });
   }
 
-  // Handle local File upload
+  // Handle file upload
   if (imageFileInput) {
     imageFileInput.addEventListener('change', (e) => {
       const file = e.target.files[0];
@@ -249,7 +243,7 @@ async function initEditorPage() {
     });
   }
 
-  // Handle remove image
+  // Remove image handler
   if (removeImageBtn) {
     removeImageBtn.addEventListener('click', () => {
       setPreview('');

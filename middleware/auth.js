@@ -21,7 +21,7 @@ module.exports = function authMiddleware(req, res, next) {
     const secret = process.env.JWT_SECRET || 'notesheaven_super_secret_jwt_key_2026';
     const decoded = jwt.verify(token, secret);
     
-    // Attach user information to the request
+    // Attach user to request
     req.user = decoded;
     next();
   } catch (error) {
